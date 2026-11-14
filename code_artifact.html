@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Вгадай тваринку! 🐾 Дитяча гра-вікторина</title>
+    <style>
+        /* Базові налаштування та пастельно-соковита палітра для дітей 4-6 років */
+        :root {
+            --bg-gradient-1: #FFF6E5;
+            --bg-gradient-2: #E3F6FF;
+            --bg-gradient-3: #F3E8FF;
+            --card-bg: #FFFFFF;
+            --text-main: #2D3748;
+            --text-muted: #4A5568;
+            --accent-yellow: #F6AD55;
+            --accent-green: #48BB78;
+            --accent-green-light: #C6F6D5;
+            --accent-orange: #ED8936;
+            --shadow-soft: 0 12px 28px rgba(45, 55, 72, 0.1);
+            --shadow-btn: 0 8px 0 rgba(0, 0, 0, 0.14);
+            --radius-xl: 32px;
+            --radius-lg: 24px;
+            --font-kid: 'Comic Sans MS', 'Chalkboard SE', 'Nunito', 'Rounded Mplus 1c', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--font-kid);
+            background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 50%, var(--bg-gradient-3) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            overflow-x: hidden;
+            padding: 16px;
+            position: relative;
+        }
+
+        /* Декоративні хмаринки та зірочки на фоні */
+        .bg-decor {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            opacity: 0.35;
+            animation: floatSlow 8s ease-in-out infinite;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-18px) rotate(8deg); }
+        }
+
+        /* Головний контейнер гри */
+        .game-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 820px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* Верхня панель з назвою, звуком та лічильником зірочок */
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            padding: 14px 22px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            border: 4px solid #FFF;
+        }
+
+        .game-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+            font-weight: 800;
+            color: #2B6CB0;
+        }
+
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Лічильник успішно виконаних завдань */
+        .score-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #FEFCBF 0%, #FAF089 100%);
+            border: 3px solid #ECC94B;
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-size: clamp(1.15rem, 3vw, 1.45rem);
+            font-weight: 800;
+            color: #744210;
+            box-shadow: 0 4px 10px rgba(236, 201, 75, 0.3);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .score-badge.bump {
+            transform: scale(1.18);
+        }
+
+        .star-icon {
+            font-size: 1.5em;
+            display: inline-block;
+            animation: starWiggle 3s ease-in-out infinite;
+        }
+
+        @keyframes starWiggle {
+            0%, 100% { transform: rotate(-6deg) scale(1); }
+            50% { transform: rotate(6deg) scale(1.1); }
+        }
+
+        /* Кнопка перемикання звуку */
+        .sound-toggle-btn {
+            background: #EDF2F7;
+            border: 3px solid #CBD5E0;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .sound-toggle-btn:hover {
+            transform: scale(1.08);
+            background: #E2E8F0;
+        }
+
+        .sound-toggle-btn.muted {
+            opacity: 0.6;
+            background: #FED7D7;
+            border-color: #FEB2B2;
+        }
+
+        /* Прогрес-бар у вигляді доріжки */
+        .progress-track {
+            width: 100%;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 999px;
+            padding: 3px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #48BB78, #38B2AC, #4299E1);
+            border-radius: 999px;
+            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Блок запитання */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            padding: 26px 24px;
+            box-shadow: var(--shadow-soft);
+            border: 5px solid #BEE3F8;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        /* Кнопка озвучення запитання для дітей, які ще не вміють читати */
+        .speak-btn {
+            background: linear-gradient(135deg, #4299E1 0%, #3182CE 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 64px;
+            height: 64px;
+            min-width: 64px;
+            font-size: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 0 #2B6CB0, 0 10px 20px rgba(49, 130, 206, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .speak-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .speak-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #2B6CB0;
+        }
+
+        .speak-btn.speaking {
+            animation: pulseSpeak 0.8s infinite alternate;
+            background: linear-gradient(135deg, #48BB78 0%, #38A169 100%);
+            box-shadow: 0 6px 0 #276749;
+        }
+
+        @keyframes pulseSpeak {
+            from { transform: scale(1); }
+            to { transform: scale(1.14); }
+        }
+
+        .question-text {
+            font-size: clamp(1.5rem, 4.2vw, 2.25rem);
+            font-weight: 800;
+            line-height: 1.3;
+            color: #1A202C;
+            flex: 1;
+            min-width: 240px;
+        }
+
+        .question-clue-emoji {
+            font-size: clamp(3rem, 7vw, 4.2rem);
+            line-height: 1;
+            filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.12));
+            animation: bounceGentle 2.4s ease-in-out infinite;
+        }
+
+        @keyframes bounceGentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Зона підказки та похвали */
+        .feedback-banner {
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 24px;
+            border-radius: 999px;
+            font-size: clamp(1.2rem, 3.3vw, 1.55rem);
+            font-weight: 800;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .feedback-banner.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .feedback-banner.success {
+            background: #C6F6D5;
+            color: #22543D;
+            border: 3px solid #48BB78;
+            box-shadow: 0 6px 16px rgba(72, 187, 120, 0.25);
+        }
+
+        .feedback-banner.retry {
+            background: #FEEBC8;
+            color: #7B341E;
+            border: 3px solid #ED8936;
+            box-shadow: 0 6px 16px rgba(237, 137, 54, 0.25);
+        }
+
+        /* Сітка з 4 яскравих кнопок-карток тварин */
+        .animals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        @media (min-width: 640px) {
+            .animals-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .animal-card {
+            border: 5px solid transparent;
+            border-radius: var(--radius-xl);
+            padding: 20px 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Унікальні соковиті та приємні кольори для кожної з 4 тваринок */
+        .animal-card[data-animal="monkey"] {
+            background: linear-gradient(180deg, #FFFBEB 0%, #FDE68A 100%);
+            border-color: #F59E0B;
+            box-shadow: 0 8px 0 #D97706, 0 12px 20px rgba(217, 119, 6, 0.18);
+        }
+
+        .animal-card[data-animal="dog"] {
+            background: linear-gradient(180deg, #EFF6FF 0%, #BFDBFE 100%);
+            border-color: #3B82F6;
+            box-shadow: 0 8px 0 #2563EB, 0 12px 20px rgba(37, 99, 235, 0.18);
+        }
+
+        .animal-card[data-animal="bunny"] {
+            background: linear-gradient(180deg, #FDF2F8 0%, #FBCFE8 100%);
+            border-color: #EC4899;
+            box-shadow: 0 8px 0 #DB2777, 0 12px 20px rgba(219, 39, 119, 0.18);
+        }
+
+        .animal-card[data-animal="cat"] {
+            background: linear-gradient(180deg, #F5F3FF 0%, #DDD6FE 100%);
+            border-color: #8B5CF6;
+            box-shadow: 0 8px 0 #7C3AED, 0 12px 20px rgba(124, 58, 237, 0.18);
+        }
+
+        .animal-card:hover:not(:disabled) {
+            transform: translateY(-6px) scale(1.03);
+        }
+
+        .animal-card:active:not(:disabled) {
+            transform: translateY(4px) scale(0.98);
+        }
+
+        .animal-emoji {
+            font-size: clamp(3.8rem, 10vw, 5.2rem);
+            line-height: 1.05;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        .animal-card:hover:not(:disabled) .animal-emoji {
+            transform: scale(1.12) rotate(-4deg);
+        }
+
+        .animal-label {
+            font-size: clamp(1.25rem, 3.2vw, 1.55rem);
+            font-weight: 800;
+            color: #1A202C;
+            background: rgba(255, 255, 255, 0.78);
+            padding: 4px 14px;
+            border-radius: 999px;
+        }
+
+        /* Стан правильної відповіді */
+        .animal-card.correct {
+            background: linear-gradient(180deg, #D1FAE5 0%, #6EE7B7 100%) !important;
+            border-color: #10B981 !important;
+            box-shadow: 0 8px 0 #059669, 0 0 30px rgba(16, 185, 129, 0.6) !important;
+            animation: happyJump 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            z-index: 5;
+        }
+
+        @keyframes happyJump {
+            0% { transform: scale(1) translateY(0); }
+            30% { transform: scale(1.16) translateY(-22px) rotate(-4deg); }
+            60% { transform: scale(1.1) translateY(-8px) rotate(4deg); }
+            100% { transform: scale(1.08) translateY(-10px) rotate(0deg); }
+        }
+
+        /* Стан м'якого похитування при помилці */
+        .animal-card.wrong-shake {
+            animation: gentleWobble 0.55s ease-in-out;
+        }
+
+        @keyframes gentleWobble {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            20% { transform: translateX(-10px) rotate(-4deg); }
+            40% { transform: translateX(10px) rotate(4deg); }
+            60% { transform: translateX(-7px) rotate(-2deg); }
+            80% { transform: translateX(7px) rotate(2deg); }
+        }
+
+        /* Стартовий екран та екран перемоги */
+        .overlay-screen {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: var(--radius-xl);
+            padding: 36px 24px;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            border: 6px solid #F6E05E;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.85); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .hero-animals {
+            font-size: clamp(3.2rem, 8vw, 4.8rem);
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-animals span {
+            display: inline-block;
+            animation: bounceGentle 2s ease-in-out infinite;
+        }
+
+        .hero-animals span:nth-child(2) { animation-delay: 0.25s; }
+        .hero-animals span:nth-child(3) { animation-delay: 0.5s; }
+        .hero-animals span:nth-child(4) { animation-delay: 0.75s; }
+
+        .big-title {
+            font-size: clamp(2rem, 5.5vw, 3rem);
+            font-weight: 900;
+            color: #2B6CB0;
+            line-height: 1.2;
+        }
+
+        .subtitle-text {
+            font-size: clamp(1.2rem, 3.2vw, 1.5rem);
+            color: var(--text-muted);
+            max-width: 560px;
+            line-height: 1.45;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #48BB78 0%, #38A169 100%);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: 18px 42px;
+            font-family: var(--font-kid);
+            font-size: clamp(1.4rem, 4vw, 1.85rem);
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #276749, 0 14px 24px rgba(56, 161, 105, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-3px) scale(1.04);
+        }
+
+        .primary-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #276749;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Полотно для святкового конфеті та зірочок */
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Декоративний фон із хмаринками та зірочками -->
+    <div class="bg-decor" aria-hidden="true">
+        <div class="floating-shape" style="top: 6%; left: 5%; animation-delay: 0s;">☁️</div>
+        <div class="floating-shape" style="top: 12%; right: 8%; animation-delay: 1.5s;">⭐</div>
+        <div class="floating-shape" style="bottom: 10%; left: 7%; animation-delay: 3s;">🌈</div>
+        <div class="floating-shape" style="bottom: 8%; right: 6%; animation-delay: 2s;">☁️</div>
+        <div class="floating-shape" style="top: 48%; left: 2%; animation-delay: 4s;">✨</div>
+        <div class="floating-shape" style="top: 42%; right: 3%; animation-delay: 2.5s;">🌼</div>
+    </div>
+
+    <!-- Canvas для анімації конфеті та зірочок -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <main class="game-wrapper">
+        <!-- Верхня панель з лічильником зірочок -->
+        <header class="top-bar">
+            <div class="game-title">
+                <span>🐾</span>
+                <span>Вгадай тваринку</span>
+            </div>
+            <div class="controls-right">
+                <div class="score-badge" id="score-badge" aria-live="polite">
+                    <span class="star-icon">⭐</span>
+                    <span>Зірочки: <span id="score-current">0</span> / <span id="score-total">12</span></span>
+                </div>
+                <button type="button" class="sound-toggle-btn" id="sound-toggle" title="Увімкнути або вимкнути звук" aria-label="Перемкнути звук">
+                    🔊
+                </button>
+            </div>
+        </header>
+
+        <!-- Смужка прогресу -->
+        <div class="progress-track" id="progress-container">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <!-- Початковий екран привітання (допомагає активувати звук у браузері одним кліком дитини) -->
+        <section class="overlay-screen" id="start-screen">
+            <div class="hero-animals">
+                <span>🐒</span>
+                <span>🐶</span>
+                <span>🐰</span>
+                <span>🐱</span>
+            </div>
+            <h1 class="big-title">Привіт, друже! 👋</h1>
+            <p class="subtitle-text">
+                Давай пограємо у веселу гру! Слухай або читай загадки про те, хто де живе та що любить їсти, і натискай на правильну тваринку!
+            </p>
+            <button type="button" class="primary-btn" id="start-btn">
+                <span>Почати гру!</span>
+                <span>🚀</span>
+            </button>
+        </section>
+
+        <!-- Основний ігровий екран -->
+        <section id="gameplay-screen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
+            <!-- Картка запитання -->
+            <div class="question-card">
+                <div class="question-clue-emoji" id="question-clue" aria-hidden="true">🍌</div>
+                <div class="question-header">
+                    <button type="button" class="speak-btn" id="speak-question-btn" title="Послухати запитання" aria-label="Озвучити запитання">
+                        🔊
+                    </button>
+                    <h2 class="question-text" id="question-text">Хто любить їсти банан?</h2>
+                </div>
+                <div class="feedback-banner" id="feedback-banner" role="status" aria-live="polite">
+                    Молодець!
+                </div>
+            </div>
+
+            <!-- 4 картки тварин -->
+            <div class="animals-grid" id="animals-grid">
+                <button type="button" class="animal-card" data-animal="monkey">
+                    <span class="animal-emoji">🐒</span>
+                    <span class="animal-label">Мавпочка</span>
+                </button>
+                <button type="button" class="animal-card" data-animal="dog">
+                    <span class="animal-emoji">🐶</span>
+                    <span class="animal-label">Собачка</span>
+                </button>
+                <button type="button" class="animal-card" data-animal="bunny">
+                    <span class="animal-emoji">🐰</span>
+                    <span class="animal-label">Зайчик</span>
+                </button>
+                <button type="button" class="animal-card" data-animal="cat">
+                    <span class="animal-emoji">🐱</span>
+                    <span class="animal-label">Котик</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Екран перемоги після проходження всіх запитань -->
+        <section class="overlay-screen hidden" id="victory-screen">
+            <div class="hero-animals">
+                <span>🏆</span>
+                <span>⭐</span>
+                <span>🎉</span>
+            </div>
+            <h2 class="big-title">Ура! Ти справжній молодець! 🎊</h2>
+            <p class="subtitle-text" id="victory-summary">
+                Ти вгадав усі 12 загадок і зібрав повний кошик зірочок! Тваринки дуже радіють!
+            </p>
+            <div class="hero-animals">
+                <span>🐒</span>
+                <span>🐶</span>
+                <span>🐰</span>
+                <span>🐱</span>
+            </div>
+            <button type="button" class="primary-btn" id="restart-btn">
+                <span>Грати ще раз</span>
+                <span>🔄</span>
+            </button>
+        </section>
+    </main>
+
+    <script>
+        /**
+         * Набір із 12 різноманітних запитань для дітей 4-6 років про те, хто де живе та що їсть.
+         * Кожне запитання містить текст для відображення, чистий текст для озвучення (без зайвих емодзі),
+         * підказку-емодзі та правильну відповідь.
+         */
+        const QUESTIONS_BANK = [
+            {
+                text: "Хто любить їсти стиглий жовтий банан? 🍌",
+                speech: "Хто любить їсти стиглий жовтий банан?",
+                clue: "🍌",
+                answer: "monkey"
+            },
+            {
+                text: "Хто живе у дерев'яній будці у дворі? 🏠",
+                speech: "Хто живе у дерев'яній будці у дворі?",
+                clue: "🏠",
+                answer: "dog"
+            },
+            {
+                text: "Хто любить хрумтіти солодкою морквинкою? 🥕",
+                speech: "Хто любить хрумтіти солодкою морквинкою?",
+                clue: "🥕",
+                answer: "bunny"
+            },
+            {
+                text: "Хто п'є тепле молочко з мисочки і муркоче? 🥛",
+                speech: "Хто п'є тепле молочко з мисочки і муркоче?",
+                clue: "🥛",
+                answer: "cat"
+            },
+            {
+                text: "Хто живе високо на деревах у теплих джунглях? 🌴",
+                speech: "Хто живе високо на деревах у теплих джунглях?",
+                clue: "🌴",
+                answer: "monkey"
+            },
+            {
+                text: "Хто охороняє дім, весело виляє хвостиком і гризе кісточку? 🦴",
+                speech: "Хто охороняє дім, весело виляє хвостиком і гризе кісточку?",
+                clue: "🦴",
+                answer: "dog"
+            },
+            {
+                text: "Хто живе у лісовій нірці та любить свіжу капусту? 🥬",
+                speech: "Хто живе у лісовій нірці та любить свіжу капусту?",
+                clue: "🥬",
+                answer: "bunny"
+            },
+            {
+                text: "Хто любить спати на м'якій подушці та гратися з клубочком? 🧶",
+                speech: "Хто любить спати на м'якій подушці та гратися з клубочком?",
+                clue: "🧶",
+                answer: "cat"
+            },
+            {
+                text: "Хто спритно стрибає по ліанах та шукає кокоси? 🥥",
+                speech: "Хто спритно стрибає по ліанах та шукає кокоси?",
+                clue: "🥥",
+                answer: "monkey"
+            },
+            {
+                text: "Хто гуляє з господарем на повідку та голосно гавкає: «Гав-гав»? 🐾",
+                speech: "Хто гуляє з господарем на повідку та голосно гавкає: гав-гав?",
+                clue: "🐾",
+                answer: "dog"
+            },
+            {
+                text: "Хто швидко стрибає по зеленій галявині та ховається під кущиком? 🌿",
+                speech: "Хто швидко стрибає по зеленій галявині та ховається під кущиком?",
+                clue: "🌿",
+                answer: "bunny"
+            },
+            {
+                text: "Хто вмивається м'якенькою лапкою та любить смачну рибку? 🐟",
+                speech: "Хто вмивається м'якенькою лапкою та любить смачну рибку?",
+                clue: "🐟",
+                answer: "cat"
+            }
+        ];
+
+        // Варіанти підбадьорливих фраз для дитини
+        const PRAISE_PHRASES = [
+            "Молодець! Правильно! 🌟",
+            "Супер! Ти вгадав! 🎉",
+            "Чудово! Так тримати! ⭐",
+            "Розумничок! Браво! 👏",
+            "Правильно! Яка радість! 🥳"
+        ];
+
+        const RETRY_PHRASES = [
+            "Спробуй ще раз! Ти обов'язково вгадаєш! 💛",
+            "Майже! Подумай ще трішки, ти зможеш! 🌈",
+            "Не здавайся! Спробуй натиснути іншу тваринку! ✨"
+        ];
+
+        // Стан гри
+        let gameQuestions = [];
+        let currentIndex = 0;
+        let completedCount = 0;
+        let isTransitioning = false;
+        let isSoundEnabled = true;
+        let nextQuestionTimer = null;
+
+        // Посилання на DOM-елементи
+        const startScreen = document.getElementById("start-screen");
+        const gameplayScreen = document.getElementById("gameplay-screen");
+        const victoryScreen = document.getElementById("victory-screen");
+        const startBtn = document.getElementById("start-btn");
+        const restartBtn = document.getElementById("restart-btn");
+        const soundToggleBtn = document.getElementById("sound-toggle");
+        const speakQuestionBtn = document.getElementById("speak-question-btn");
+
+        const scoreBadge = document.getElementById("score-badge");
+        const scoreCurrentEl = document.getElementById("score-current");
+        const scoreTotalEl = document.getElementById("score-total");
+        const progressFill = document.getElementById("progress-fill");
+
+        const questionClueEl = document.getElementById("question-clue");
+        const questionTextEl = document.getElementById("question-text");
+        const feedbackBanner = document.getElementById("feedback-banner");
+        const animalCards = document.querySelectorAll(".animal-card");
+
+        /**
+         * Звуковий рушій на основі Web Audio API (без зовнішніх файлів)
+         * та синтезатор мовлення Web Speech API для озвучення українською.
+         */
+        let audioCtx = null;
+
+        function ensureAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === "suspended") {
+                audioCtx.resume().catch(() => {});
+            }
+        }
+
+        // Приємна мелодія успіху (веселий мажорний арпеджіо-дзвіночок)
+        function playSuccessSound() {
+            if (!isSoundEnabled) return;
+            ensureAudioContext();
+            if (!audioCtx) return;
+
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // До5, Мі5, Соль5, До6
+            const now = audioCtx.currentTime;
+
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+
+                gain.gain.setValueAtTime(0.001, now + idx * 0.09);
+                gain.gain.exponentialRampToValueAtTime(0.22, now + idx * 0.09 + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.35);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + idx * 0.09);
+                osc.stop(now + idx * 0.09 + 0.38);
+            });
+        }
+
+        // Дружній м'який звук при помилці (без різких низьких гудків)
+        function playGentleTryAgainSound() {
+            if (!isSoundEnabled) return;
+            ensureAudioContext();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const freqs = [392.00, 349.23]; // Соль4 -> Фа4
+
+            freqs.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(freq, now + idx * 0.14);
+
+                gain.gain.setValueAtTime(0.001, now + idx * 0.14);
+                gain.gain.exponentialRampToValueAtTime(0.16, now + idx * 0.14 + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.14 + 0.25);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + idx * 0.14);
+                osc.stop(now + idx * 0.14 + 0.28);
+            });
+        }
+
+        // Святкова фанфара на фінальному екрані перемоги
+        function playVictoryFanfare() {
+            if (!isSoundEnabled) return;
+            ensureAudioContext();
+            if (!audioCtx) return;
+
+            const melody = [
+                { f: 523.25, t: 0.0, d: 0.15 },
+                { f: 659.25, t: 0.15, d: 0.15 },
+                { f: 783.99, t: 0.30, d: 0.15 },
+                { f: 1046.50, t: 0.45, d: 0.35 },
+                { f: 783.99, t: 0.82, d: 0.15 },
+                { f: 1046.50, t: 1.00, d: 0.55 }
+            ];
+
+            const now = audioCtx.currentTime;
+            melody.forEach((note) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(note.f, now + note.t);
+
+                gain.gain.setValueAtTime(0.001, now + note.t);
+                gain.gain.exponentialRampToValueAtTime(0.24, now + note.t + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + note.t + note.d);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + note.t);
+                osc.stop(now + note.t + note.d + 0.05);
+            });
+        }
+
+        // Озвучення тексту українською мовою через Web Speech API із надійним захистом
+        let ukVoice = null;
+
+        function loadUkrainianVoice() {
+            if (!("speechSynthesis" in window)) return;
+            const voices = window.speechSynthesis.getVoices();
+            if (!voices || voices.length === 0) return;
+
+            ukVoice =
+                voices.find((v) => v.lang.toLowerCase().startsWith("uk")) ||
+                voices.find((v) => v.name.toLowerCase().includes("ukrain")) ||
+                null;
+        }
+
+        if ("speechSynthesis" in window) {
+            loadUkrainianVoice();
+            window.speechSynthesis.onvoiceschanged = loadUkrainianVoice;
+        }
+
+        function speakUkrainian(text, isQuestion = false) {
+            if (!isSoundEnabled) return;
+            if (!("speechSynthesis" in window)) return;
+
+            try {
+                window.speechSynthesis.cancel();
+                // Очищуємо текст від емодзі для природного читання
+                const cleanText = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "").trim();
+                if (!cleanText) return;
+
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = "uk-UA";
+                if (ukVoice) {
+                    utterance.voice = ukVoice;
+                }
+                // Трохи вищий та лагідний дитячий тон голосу
+                utterance.pitch = 1.15;
+                utterance.rate = 0.94;
+
+                if (isQuestion) {
+                    utterance.onstart = () => speakQuestionBtn.classList.add("speaking");
+                    utterance.onend = () => speakQuestionBtn.classList.remove("speaking");
+                    utterance.onerror = () => speakQuestionBtn.classList.remove("speaking");
+                }
+
+                window.speechSynthesis.speak(utterance);
+            } catch (err) {
+                // Якщо синтез мовлення недоступний у середовищі, гра продовжує працювати зі звуками Web Audio API
+                speakQuestionBtn.classList.remove("speaking");
+            }
+        }
+
+        /**
+         * Система святкового конфеті та зірочок на Canvas
+         */
+        const canvas = document.getElementById("confetti-canvas");
+        const ctx = canvas.getContext("2d");
+        let particles = [];
+        let animationFrameId = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        function launchConfetti(amount = 65) {
+            const colors = ["#F59E0B", "#10B981", "#3B82F6", "#EC4899", "#8B5CF6", "#FBBF24", "#34D399"];
+            const shapes = ["circle", "rect", "star"];
+
+            for (let i = 0; i < amount; i++) {
+                particles.push({
+                    x: canvas.width * (0.2 + Math.random() * 0.6),
+                    y: canvas.height * 0.45,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: -Math.random() * 14 - 4,
+                    size: Math.random() * 10 + 7,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    shape: shapes[Math.floor(Math.random() * shapes.length)],
+                    rotation: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 0.25,
+                    gravity: 0.35 + Math.random() * 0.15,
+                    alpha: 1
+                });
+            }
+
+            if (!animationFrameId) {
+                animateConfetti();
+            }
+        }
+
+        function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = (Math.PI / 2) * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += p.gravity;
+                p.vx *= 0.99;
+                p.rotation += p.vRot;
+                p.alpha -= 0.011;
+
+                if (p.alpha <= 0 || p.y > canvas.height + 40) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation);
+                ctx.fillStyle = p.color;
+
+                if (p.shape === "circle") {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size * 0.55, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (p.shape === "star") {
+                    drawStar(0, 0, 5, p.size * 0.85, p.size * 0.4);
+                } else {
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+                }
+
+                ctx.restore();
+            }
+
+            if (particles.length > 0) {
+                animationFrameId = requestAnimationFrame(animateConfetti);
+            } else {
+                animationFrameId = null;
+            }
+        }
+
+        /**
+         * Допоміжна функція перемішування запитань (алгоритм Фішера — Єйтса)
+         */
+        function shuffleArray(array) {
+            const copy = [...array];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        /**
+         * Ігрова логіка
+         */
+        function initNewGame() {
+            if (nextQuestionTimer) {
+                clearTimeout(nextQuestionTimer);
+                nextQuestionTimer = null;
+            }
+
+            gameQuestions = shuffleArray(QUESTIONS_BANK);
+            currentIndex = 0;
+            completedCount = 0;
+            isTransitioning = false;
+
+            scoreTotalEl.textContent = gameQuestions.length;
+            updateScoreUI();
+
+            startScreen.classList.add("hidden");
+            victoryScreen.classList.add("hidden");
+            gameplayScreen.classList.remove("hidden");
+
+            renderCurrentQuestion();
+        }
+
+        function updateScoreUI() {
+            scoreCurrentEl.textContent = completedCount;
+            const percent = (completedCount / gameQuestions.length) * 100;
+            progressFill.style.width = `${percent}%`;
+
+            scoreBadge.classList.remove("bump");
+            void scoreBadge.offsetWidth; // перезапуск анімації
+            scoreBadge.classList.add("bump");
+        }
+
+        function renderCurrentQuestion() {
+            isTransitioning = false;
+            const currentQ = gameQuestions[currentIndex];
+
+            questionClueEl.textContent = currentQ.clue;
+            questionTextEl.textContent = currentQ.text;
+
+            // Ховаємо банер відгуку
+            feedbackBanner.className = "feedback-banner";
+            feedbackBanner.textContent = "";
+
+            // Скидаємо стани карток тварин
+            animalCards.forEach((card) => {
+                card.disabled = false;
+                card.classList.remove("correct", "wrong-shake");
+            });
+
+            // Автоматично озвучуємо запитання для дитини
+            speakUkrainian(currentQ.speech, true);
+        }
+
+        function showFeedback(message, type) {
+            feedbackBanner.textContent = message;
+            feedbackBanner.className = `feedback-banner visible ${type}`;
+        }
+
+        function handleAnimalSelection(selectedCard) {
+            if (isTransitioning) return;
+
+            ensureAudioContext();
+            const chosenAnimal = selectedCard.dataset.animal;
+            const currentQ = gameQuestions[currentIndex];
+
+            if (chosenAnimal === currentQ.answer) {
+                // ПРАВИЛЬНА ВІДПОВІДЬ!
+                isTransitioning = true;
+                completedCount++;
+                updateScoreUI();
+
+                // Блокуємо всі кнопки на час святкування, а правильну підсвічуємо
+                animalCards.forEach((card) => {
+                    card.disabled = true;
+                });
+                selectedCard.classList.add("correct");
+
+                const praise = PRAISE_PHRASES[Math.floor(Math.random() * PRAISE_PHRASES.length)];
+                showFeedback(praise, "success");
+
+                // Звук перемоги + голосова похвала + конфеті
+                playSuccessSound();
+                launchConfetti(70);
+                setTimeout(() => {
+                    speakUkrainian(praise, false);
+                }, 320);
+
+                // Автоматичний перехід до наступного запитання через 2 секунди
+                nextQuestionTimer = setTimeout(() => {
+                    currentIndex++;
+                    if (currentIndex < gameQuestions.length) {
+                        renderCurrentQuestion();
+                    } else {
+                        showVictoryScreen();
+                    }
+                }, 2100);
+            } else {
+                // НЕПРАВИЛЬНА ВІДПОВІДЬ — м'яка підтримка без покарань
+                selectedCard.classList.remove("wrong-shake");
+                void selectedCard.offsetWidth;
+                selectedCard.classList.add("wrong-shake");
+
+                const retryMsg = RETRY_PHRASES[Math.floor(Math.random() * RETRY_PHRASES.length)];
+                showFeedback(retryMsg, "retry");
+
+                playGentleTryAgainSound();
+                speakUkrainian("Спробуй ще раз! Ти зможеш!", false);
+            }
+        }
+
+        function showVictoryScreen() {
+            gameplayScreen.classList.add("hidden");
+            victoryScreen.classList.remove("hidden");
+
+            const summaryEl = document.getElementById("victory-summary");
+            summaryEl.textContent = `Ти вгадав усі ${gameQuestions.length} загадок і зібрав ${completedCount} зірочок! Тваринки дуже пишаються тобою!`;
+
+            playVictoryFanfare();
+            launchConfetti(130);
+            setTimeout(() => launchConfetti(90), 650);
+
+            setTimeout(() => {
+                speakUkrainian("Ура! Ти справжній молодець! Ти вгадав усі загадки!", false);
+            }, 600);
+        }
+
+        // Обробники подій
+        startBtn.addEventListener("click", () => {
+            ensureAudioContext();
+            initNewGame();
+        });
+
+        restartBtn.addEventListener("click", () => {
+            ensureAudioContext();
+            initNewGame();
+        });
+
+        speakQuestionBtn.addEventListener("click", () => {
+            ensureAudioContext();
+            if (gameQuestions[currentIndex]) {
+                speakUkrainian(gameQuestions[currentIndex].speech, true);
+            }
+        });
+
+        animalCards.forEach((card) => {
+            card.addEventListener("click", () => {
+                handleAnimalSelection(card);
+            });
+        });
+
+        soundToggleBtn.addEventListener("click", () => {
+            isSoundEnabled = !isSoundEnabled;
+            soundToggleBtn.textContent = isSoundEnabled ? "🔊" : "🔇";
+            soundToggleBtn.classList.toggle("muted", !isSoundEnabled);
+
+            if (!isSoundEnabled && "speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+                speakQuestionBtn.classList.remove("speaking");
+            } else if (isSoundEnabled && !gameplayScreen.classList.contains("hidden")) {
+                speakUkrainian(gameQuestions[currentIndex].speech, true);
+            }
+        });
+
+        // Ініціалізація загальної кількості зірочок у шапці при завантаженні
+        window.addEventListener("load", () => {
+            scoreTotalEl.textContent = QUESTIONS_BANK.length;
+        });
+    </script>
+</body>
+</html>
